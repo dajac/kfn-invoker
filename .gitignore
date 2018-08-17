@@ -4,6 +4,12 @@
 # Log file
 *.log
 
+# Maven
+target/
+
+# IntelliJ
+.idea
+
 # BlueJ files
 *.ctxt
 
