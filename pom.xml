@@ -6,7 +6,7 @@
 
     <groupId>io.dajac.kfn</groupId>
     <artifactId>kfn-invoker</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.0.1</version>
 
     <dependencies>
         <dependency>
@@ -51,4 +51,12 @@
             </plugin>
         </plugins>
     </build>
+
+    <distributionManagement>
+        <repository>
+            <id>clojars</id>
+            <name>Clojars repository</name>
+            <url>https://clojars.org/repo</url>
+        </repository>
+    </distributionManagement>
 </project>
