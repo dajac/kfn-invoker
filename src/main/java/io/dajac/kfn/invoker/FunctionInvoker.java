@@ -72,7 +72,10 @@ public class FunctionInvoker {
                 for (Object obj : records) {
                     ConsumerRecord record = (ConsumerRecord) obj;
                     KeyValue result = this.function.apply(record.key(), record.value());
-                    this.producer.send(new ProducerRecord(this.outputTopic, result.key, result.value));
+                    
+                    if (result != null) {
+                        this.producer.send(new ProducerRecord(this.outputTopic, result.key, result.value));
+                    }
                 }
 
                 LOG.debug("Processed {} records", records.count());
