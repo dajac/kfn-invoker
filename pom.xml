@@ -6,7 +6,7 @@
 
     <groupId>io.dajac.kfn</groupId>
     <artifactId>kfn-invoker</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
 
     <dependencies>
         <dependency>

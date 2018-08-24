@@ -3,14 +3,17 @@ package io.dajac.kfn.invoker;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.errors.WakeupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
@@ -65,7 +68,7 @@ public class FunctionInvoker {
         try {
             while (this.isRunning.get()) {
                 LOG.debug("Polling new records");
-                ConsumerRecords records = this.consumer.poll(1000);
+                ConsumerRecords records = this.consumer.poll(Duration.ofMillis(100));
                 LOG.debug("Consumed {} records", records.count());
 
                 // TODO(dajac): how to handle futures returned by the send method and how to commit offsets?
