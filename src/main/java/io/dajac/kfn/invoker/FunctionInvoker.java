@@ -3,10 +3,8 @@ package io.dajac.kfn.invoker;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.errors.WakeupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +17,6 @@ import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-@SuppressWarnings("ALL")
 public class FunctionInvoker {
 
     private static final Logger LOG = LoggerFactory.getLogger(FunctionInvoker.class);
@@ -30,13 +27,14 @@ public class FunctionInvoker {
     private final String inputTopic;
     private final String outputTopic;
 
-    private final KafkaConsumer consumer;
-    private final KafkaProducer producer;
+    private final KafkaConsumer<Object, Object> consumer;
+    private final KafkaProducer<Object, Object> producer;
 
     private final String functionName;
     private final String functionClass;
-    private final Function function;
+    private final Function<Object, Object, Object, Object> function;
 
+    @SuppressWarnings("unchecked")
     public FunctionInvoker(Properties properties) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
 
         Properties functionProps = getProperitesWithPrefix(properties, "function.", true);
@@ -48,7 +46,7 @@ public class FunctionInvoker {
         LOG.info("Loading {} function", this.functionClass);
 
         // Load, instanciate and configure the function
-        this.function = (Function) Class.forName(this.functionClass).newInstance();
+        this.function = (Function<Object, Object, Object, Object>) Class.forName(this.functionClass).newInstance();
         this.function.configure(functionProps);
 
         Properties consumerProps = getProperitesWithPrefix(properties, "consumer.", true);
@@ -68,16 +66,14 @@ public class FunctionInvoker {
         try {
             while (this.isRunning.get()) {
                 LOG.debug("Polling new records");
-                ConsumerRecords records = this.consumer.poll(Duration.ofMillis(100));
+                ConsumerRecords<Object, Object> records = this.consumer.poll(Duration.ofMillis(100));
                 LOG.debug("Consumed {} records", records.count());
 
-                // TODO(dajac): how to handle futures returned by the send method and how to commit offsets?
-                for (Object obj : records) {
-                    ConsumerRecord record = (ConsumerRecord) obj;
-                    KeyValue result = this.function.apply(record.key(), record.value());
+                for (ConsumerRecord<Object, Object> record : records) {
+                    KeyValue<Object, Object> result = this.function.apply(record.key(), record.value());
                     
                     if (result != null) {
-                        this.producer.send(new ProducerRecord(this.outputTopic, result.key, result.value));
+                        this.producer.send(new ProducerRecord<Object, Object>(this.outputTopic, result.key, result.value));
                     }
                 }
 
